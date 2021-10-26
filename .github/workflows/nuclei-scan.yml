@@ -1,14 +1,10 @@
 name: Nuclei Scan
-
 on:
   schedule:
   - cron: "0 8 * * *" # Runs at 08:00 UTC every day
   push:
     branches: [ nuclei-scan ]
-  pull_request:
-    branches: [ nuclei-scan ]
   workflow_dispatch:
-
 jobs:
   nuclei-scan:
     runs-on: ubuntu-latest

@@ -1,14 +1,10 @@
 name: HTTP Response Scan
-
 on:
   schedule:
   - cron: "0 8 * * *" # Runs at 08:00 UTC every day
   push:
     branches: [ http-response-scan ]
-  pull_request:
-    branches: [ http-response-scan ]
   workflow_dispatch:
-
 jobs:
   check-http-response-match:
     runs-on: ubuntu-latest
