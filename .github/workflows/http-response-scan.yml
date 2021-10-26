@@ -1,0 +1,44 @@
+name: HTTP Response Scan
+
+on:
+  schedule:
+  - cron: "0 8 * * *" # Runs at 08:00 UTC every day
+  push:
+    branches: [ http-response-scan ]
+  pull_request:
+    branches: [ http-response-scan ]
+  workflow_dispatch:
+
+jobs:
+  check-http-response-match:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: 
+          # `target` is the URL to check
+          # `match` is the string to check the HTTP response for
+          # `check` describes what is being checked & is used in failure notifications
+          - target: "https://abridge.io"
+            match: "<meta http-equiv=\\\"Content-Security-Policy\\\" content="
+            check: "Check that content security policy is included on Abridge page body"
+          - target: "https://abridge.io"
+            match: "Strict-Transport-Security: max-age=31536000; includeSubDomains"
+            check: "Check that Strict-Transport-Security header is included in Abridge headers"
+    steps:
+    - name: ${{ matrix.check }}
+      run : |
+        curl --include --silent ${{ matrix.target }} | grep --ignore-case "${{ matrix.match }}"
+
+    - name: If failed, get raw response to help investigate
+      if: ${{ failure() }}
+      run: |
+        curl --include --silent ${{ matrix.target }}
+
+    - name: If failed, ping Slack
+      if: ${{ failure() }}
+      uses: slackapi/slack-github-action@v1.15.0
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_NOTIFIER_WEBHOOK }}
+      with:
+        payload: "{\"source\":\"check-http-response-match\",\"url\":\"https://github.com/chair6/security-actions/actions/workflows/check-http-response-match.yml\",\"notification\":\":bangbang: ${{ matrix.check }} failed.\"}"
