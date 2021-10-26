@@ -1,0 +1,25 @@
+name: Nuclei Scan
+
+on:
+  schedule:
+  - cron: "0 8 * * *" # Runs at 08:00 UTC every day
+  push:
+    branches: [ nuclei-scan ]
+  pull_request:
+    branches: [ nuclei-scan ]
+  workflow_dispatch:
+
+jobs:
+  nuclei-scan:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        url: 
+          - https://google.com
+          - https://microsoft.com
+    steps:
+    - name: Scan ${{ matrix.url }} with Nuclei
+      uses: projectdiscovery/nuclei-action@508c1868d4884e9fb6eb4d8d680cbc6b493c7ec5
+      with:
+        target: ${{ matrix.url }}
